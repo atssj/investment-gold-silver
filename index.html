@@ -56,8 +56,8 @@
             margin-bottom: 30px;
         }
         .card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.12); /* Up from 0.08 */
+            backdrop-filter: blur(10px) brightness(1.1); /* Add brightness */
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -107,10 +107,10 @@
             font-size: 2.2rem;
             font-weight: 700;
             margin: 15px 0;
-            color: #FFD700;
+            color: #FFE55C; /* Brighter gold */
         }
         .silver .price {
-            color: #C0C0C0;
+            color: #E8E8E8; /* Brighter silver */
         }
         .ratio-value {
             font-size: 2.2rem;
@@ -130,22 +130,61 @@
             align-items: center;
             justify-content: center;
         }
-        .buy { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border: 2px solid #2ecc71; }
-        .hold { background: rgba(241, 196, 15, 0.25); color: #f1c40f; border: 2px solid #f1c40f; }
-        .sell { background: rgba(231, 76, 60, 0.25); color: #e74c3c; border: 2px solid #e74c3c; }
+        .buy { background: rgba(46, 204, 113, 0.9); color: #1a1a1a; }
+        .hold { background: rgba(241, 196, 15, 0.9); color: #1a1a1a; }
+        .sell { background: rgba(231, 76, 60, 0.9); color: #ffffff; }
         .last-updated {
             display: none; /* Hidden since timestamp is in header */
         }
         .price-location {
             display: none; /* Hidden since location is in header */
         }
-        .explanation {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-size: 0.95rem;
-            line-height: 1.5;
+        .card p {
+            color: #e0e0e0;
+        }
+        .price-change {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-left: 15px;
+            padding: 5px 8px;
+            border-radius: 6px;
+        }
+        .price-change.up {
+            color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.15);
+        }
+        .price-change.down {
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.15);
+        }
+        .ratio-gauge-container {
+            margin-top: 20px;
+        }
+        .ratio-gauge {
+            height: 12px;
+            background: linear-gradient(to right,
+                #e74c3c 0%,
+                #f39c12 25%,
+                #2ecc71 50%,
+                #f39c12 75%,
+                #e74c3c 100%);
+            border-radius: 6px;
+            position: relative;
+        }
+        .gauge-marker {
+            position: absolute;
+            top: -5px;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.5rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #a0d2eb;
+            margin-top: 5px;
         }
         .ai-details {
             margin-top: 15px;
@@ -163,6 +202,31 @@
         }
         .ai-details li {
             margin-bottom: 6px;
+        }
+        .ai-details details {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ai-details summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            outline: none;
+            transition: color 0.2s ease;
+        }
+        .ai-details summary:hover {
+            color: #4fc3f7;
+        }
+        .ai-details details[open] summary {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ai-details details p {
+            padding: 15px;
+            margin: 0;
+            color: #a0d2eb;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
         .allocation {
             display: flex;
@@ -279,7 +343,7 @@
                     <div class="card-icon gold-icon">🪙</div>
                     <h2 class="card-title">Gold Price (24K)</h2>
                 </div>
-                <div class="price" id="goldPrice">₹11,640</div>
+                <div class="price" id="goldPrice">₹11,640 <span class="price-change" id="goldPriceChange"></span></div>
                 <p>Per gram in Indian Rupees (INR)</p>
                 <div class="price-location" id="goldLocation">India • Mumbai</div>
                 <div class="last-updated" id="goldUpdated">Last updated: Just now</div>
@@ -291,7 +355,7 @@
                     <div class="card-icon silver-icon">🥈</div>
                     <h2 class="card-title">Silver Price</h2>
                 </div>
-                <div class="price" id="silverPrice">₹150</div>
+                <div class="price" id="silverPrice">₹150 <span class="price-change" id="silverPriceChange"></span></div>
                 <p>Per gram in Indian Rupees (INR)</p>
                 <div class="price-location" id="silverLocation">India • Mumbai</div>
                 <div class="last-updated" id="silverUpdated">Last updated: Just now</div>
@@ -305,9 +369,15 @@
                 </div>
                 <div class="ratio-value" id="ratioValue">77.6</div>
                 <p>How many grams of silver = 1 gram of gold</p>
-                <div class="explanation">
-                    <strong>Historical Context:</strong> 
-                    <span id="ratioContext">Current ratio is within normal range (60-80).</span>
+                <div class="ratio-gauge-container">
+                    <div class="ratio-gauge">
+                        <div class="gauge-marker" id="gaugeMarker">▼</div>
+                    </div>
+                    <div class="gauge-labels">
+                        <span>&lt; 60 (Silver Overvalued)</span>
+                        <span>Normal</span>
+                        <span>&gt; 85 (Gold Overvalued)</span>
+                    </div>
                 </div>
             </div>
 
@@ -354,6 +424,8 @@
         // Simulated real-time data
         const goldPrice = 11640; // INR per gram
         const silverPrice = 150; // INR per gram
+        const goldPreviousPrice = 11580;
+        const silverPreviousPrice = 149;
         const ratio = (goldPrice / silverPrice).toFixed(1);
         
         // Get current date in India
@@ -377,6 +449,8 @@
         // DOM elements
         const goldPriceEl = document.getElementById('goldPrice');
         const silverPriceEl = document.getElementById('silverPrice');
+        const goldPriceChangeEl = document.getElementById('goldPriceChange');
+        const silverPriceChangeEl = document.getElementById('silverPriceChange');
         const ratioValueEl = document.getElementById('ratioValue');
         const ratioContextEl = document.getElementById('ratioContext');
         const recommendationEl = document.getElementById('recommendation');
@@ -395,15 +469,36 @@
         };
         
         // Update displayed prices
-        goldPriceEl.textContent = formatPrice(goldPrice);
-        silverPriceEl.textContent = formatPrice(silverPrice);
+        goldPriceEl.firstChild.textContent = formatPrice(goldPrice) + ' ';
+        silverPriceEl.firstChild.textContent = formatPrice(silverPrice) + ' ';
         ratioValueEl.textContent = ratio;
+
+        // Calculate and display price changes
+        const calculateChange = (current, previous) => {
+            const change = ((current - previous) / previous * 100);
+            const formattedChange = Math.abs(change).toFixed(2);
+            const arrow = change >= 0 ? '↑' : '↓';
+            const direction = change >= 0 ? 'up' : 'down';
+            return {
+                text: `${arrow} ${formattedChange}% today`,
+                direction: direction
+            };
+        };
+
+        const goldChange = calculateChange(goldPrice, goldPreviousPrice);
+        goldPriceChangeEl.textContent = goldChange.text;
+        goldPriceChangeEl.className = 'price-change ' + goldChange.direction;
+
+        const silverChange = calculateChange(silverPrice, silverPreviousPrice);
+        silverPriceChangeEl.textContent = silverChange.text;
+        silverPriceChangeEl.className = 'price-change ' + silverChange.direction;
         
         // Update timestamp banner
         timestampBannerEl.textContent = fullTimestamp;
         
         // Analyze ratio and generate detailed recommendation
         let recommendation = 'HOLD';
+        let recommendationClass = 'hold';
         let recommendationAsset = 'Gold & Silver ETFs';
         let ratioContext = '';
         let aiDetails = '';
@@ -413,63 +508,84 @@
         if (ratio < 60) {
             ratioContext = 'Current ratio is LOW (<60). Historically indicates silver is overvalued or gold undervalued.';
             recommendation = 'BUY';
+            recommendationClass = 'buy';
             recommendationAsset = 'Gold ETFs';
             goldAllocation = 65;
             silverAllocation = 35;
             aiDetails = `
-                <h4>Action: BUY Gold ETFs</h4>
-                <p><strong>Do not buy both in equal proportion.</strong> Increase Gold ETF allocation while reducing Silver ETF exposure.</p>
+                <h4>💡 Recommendation</h4>
+                <p><strong>Shift to ${goldAllocation}/${silverAllocation} Gold-heavy allocation.</strong> Gold is historically undervalued—increase exposure now.</p>
+                <h4>📊 Key Insights</h4>
                 <ul>
-                    <li>Gold is historically undervalued relative to silver</li>
-                    <li>Strong potential for gold price appreciation</li>
-                    <li>Recommended allocation: ${goldAllocation}% Gold ETFs, ${silverAllocation}% Silver ETFs</li>
+                    <li><strong>Ratio Status:</strong> Low (&lt;60) – Gold opportunity</li>
+                    <li><strong>Potential:</strong> Strong gold appreciation expected</li>
+                    <li><strong>Allocation:</strong> ${goldAllocation}% Gold ETF / ${silverAllocation}% Silver ETF</li>
                 </ul>
-                <h4>Market Outlook</h4>
-                <p>Favorable for precious metals due to economic uncertainty and inflation hedge demand.</p>
+                <details>
+                    <summary><strong>View Market Outlook →</strong></summary>
+                    <p>Favorable for precious metals due to economic uncertainty and inflation hedge demand.</p>
+                </details>
             `;
         } else if (ratio > 85) {
             ratioContext = 'Current ratio is HIGH (>85). Historically indicates gold is overvalued or silver undervalued.';
             recommendation = 'BUY';
+            recommendationClass = 'buy';
             recommendationAsset = 'Silver ETFs';
             goldAllocation = 35;
             silverAllocation = 65;
             aiDetails = `
-                <h4>Action: BUY Silver ETFs</h4>
-                <p><strong>Do not buy both in equal proportion.</strong> Increase Silver ETF allocation while reducing Gold ETF exposure.</p>
+                <h4>💡 Recommendation</h4>
+                <p><strong>Shift to ${goldAllocation}/${silverAllocation} Silver-heavy allocation.</strong> Silver is historically undervalued—increase exposure now.</p>
+                <h4>📊 Key Insights</h4>
                 <ul>
-                    <li>Silver is historically undervalued relative to gold</li>
-                    <li>Industrial demand may boost silver prices</li>
-                    <li>Recommended allocation: ${goldAllocation}% Gold ETFs, ${silverAllocation}% Silver ETFs</li>
+                    <li><strong>Ratio Status:</strong> High (&gt;85) – Silver opportunity</li>
+                    <li><strong>Potential:</strong> Strong silver appreciation expected from industrial demand</li>
+                    <li><strong>Allocation:</strong> ${goldAllocation}% Gold ETF / ${silverAllocation}% Silver ETF</li>
                 </ul>
-                <h4>Market Outlook</h4>
-                <p>Strong upside potential for silver with improving industrial activity and green energy trends.</p>
+                <details>
+                    <summary><strong>View Market Outlook →</strong></summary>
+                    <p>Strong upside potential for silver with improving industrial activity and green energy trends.</p>
+                </details>
             `;
         } else {
             ratioContext = 'Current ratio is within normal range (60-80).';
-            recommendation = 'HOLD';
+            recommendation = 'HOLD & CONTINUE 50/50';
+            recommendationClass = 'hold';
             recommendationAsset = 'Gold & Silver ETFs';
             goldAllocation = 50;
             silverAllocation = 50;
             aiDetails = `
-                <h4>Action: HOLD Current Positions</h4>
-                <p><strong>Continue buying both Gold and Silver ETFs in equal 50/50 proportion</strong> if you are making new investments, as the current ratio indicates balanced valuation.</p>
+                <h4>💡 Recommendation</h4>
+                <p><strong>Continue 50/50 buying strategy</strong> for new investments. Current ratio indicates balanced market.</p>
+                <h4>📊 Key Insights</h4>
                 <ul>
-                    <li>Gold/Silver ratio is balanced</li>
-                    <li>No strong signal for over/undervaluation</li>
-                    <li>Maintain current ${goldAllocation}/${silverAllocation} allocation between Gold & Silver ETFs</li>
+                  <li><strong>Ratio Status:</strong> Balanced (60-80 range)</li>
+                  <li><strong>Signal:</strong> No over/undervaluation detected</li>
+                  <li><strong>Next Action:</strong> Rebalance if ratio moves beyond 60-80</li>
                 </ul>
-                <h4>Market Outlook</h4>
-                <p>Stable conditions with moderate volatility. Rebalance if ratio moves beyond 60-80 range.</p>
+                <details>
+                  <summary><strong>View Market Outlook →</strong></summary>
+                  <p>Stable conditions with moderate volatility. Rebalance if ratio moves beyond 60-80 range.</p>
+                </details>
             `;
         }
         
         // Update UI
-        ratioContextEl.textContent = ratioContext;
         recommendationEl.textContent = recommendation;
         recommendationAssetEl.textContent = recommendationAsset;
-        recommendationEl.className = 'recommendation ' + recommendation.toLowerCase();
+        recommendationEl.className = 'recommendation ' + recommendationClass;
         aiDetailsEl.innerHTML = aiDetails;
         
+        // Position gauge marker
+        const positionGaugeMarker = (currentRatio) => {
+            const minRatio = 50;
+            const maxRatio = 95;
+            let percentage = ((currentRatio - minRatio) / (maxRatio - minRatio)) * 100;
+            percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0-100
+            document.getElementById('gaugeMarker').style.left = `${percentage}%`;
+        };
+        positionGaugeMarker(ratio);
+
         // Update allocation display
         allocationDisplayEl.innerHTML = `
             <div class="allocation-item">
