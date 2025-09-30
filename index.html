@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold & Silver Financial Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            position: relative;
+        }
+        .timestamp-banner {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            color: #a0d2eb;
+            font-size: 1.1rem;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+        .gold-icon {
+            background: linear-gradient(135deg, #FFD700, #D4AF37);
+            color: #1a1a1a;
+        }
+        .silver-icon {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            color: #1a1a1a;
+        }
+        .ratio-icon {
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            color: white;
+        }
+        .ai-icon {
+            background: linear-gradient(135deg, #4B0082, #8A2BE2);
+            color: white;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        .price {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            color: #FFD700;
+        }
+        .silver .price {
+            color: #C0C0C0;
+        }
+        .ratio-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            color: #FFA500;
+        }
+        .recommendation {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 15px 0;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .buy { background: rgba(46, 204, 113, 0.25); color: #2ecc71; border: 2px solid #2ecc71; }
+        .hold { background: rgba(241, 196, 15, 0.25); color: #f1c40f; border: 2px solid #f1c40f; }
+        .sell { background: rgba(231, 76, 60, 0.25); color: #e74c3c; border: 2px solid #e74c3c; }
+        .last-updated {
+            display: none; /* Hidden since timestamp is in header */
+        }
+        .price-location {
+            display: none; /* Hidden since location is in header */
+        }
+        .explanation {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .ai-details {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .ai-details h4 {
+            margin: 10px 0 8px;
+            color: #e0e0ff;
+            font-size: 1.1rem;
+        }
+        .ai-details ul {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .ai-details li {
+            margin-bottom: 6px;
+        }
+        .allocation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .allocation-item {
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 100px;
+        }
+        .allocation-label {
+            font-size: 0.9rem;
+            color: #a0d2eb;
+        }
+        .allocation-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Mobile layout: specific 2x2 grid + full-width analysis card */
+        @media (max-width: 767px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto auto;
+                grid-template-areas:
+                    "gold silver"
+                    "ratio ai"
+                    "analysis analysis";
+                gap: 20px;
+            }
+            .gold-card { grid-area: gold; }
+            .silver-card { grid-area: silver; }
+            .ratio-card { grid-area: ratio; }
+            .ai-card { grid-area: ai; }
+            .analysis-card { grid-area: analysis; }
+            h1 {
+                font-size: 2rem;
+            }
+            .card {
+                padding: 20px;
+            }
+            .timestamp-banner {
+                font-size: 0.95rem;
+                padding: 10px 15px;
+            }
+        }
+
+        /* Single column for very small screens (<480px) */
+        @media (max-width: 479px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "gold"
+                    "silver"
+                    "ratio"
+                    "ai"
+                    "analysis";
+            }
+        }
+
+        /* Footer Styles */
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            font-size: 0.85rem;
+            color: #a0d2eb;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        .data-source {
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .data-source a {
+            color: #4fc3f7;
+            text-decoration: none;
+        }
+        .data-source a:hover {
+            text-decoration: underline;
+        }
+        .disclaimer {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #888;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gold & Silver Financial Dashboard</h1>
+            <p class="subtitle">Real-time prices, ratio analysis, and AI-powered investment recommendations</p>
+            <div class="timestamp-banner" id="timestampBanner">
+                Prices for India • Mumbai • Last updated: 30 September 2025 at 02:25 PM IST
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- Gold Card -->
+            <div class="card gold gold-card">
+                <div class="card-header">
+                    <div class="card-icon gold-icon">🪙</div>
+                    <h2 class="card-title">Gold Price (24K)</h2>
+                </div>
+                <div class="price" id="goldPrice">₹11,640</div>
+                <p>Per gram in Indian Rupees (INR)</p>
+                <div class="price-location" id="goldLocation">India • Mumbai</div>
+                <div class="last-updated" id="goldUpdated">Last updated: Just now</div>
+            </div>
+
+            <!-- Silver Card -->
+            <div class="card silver silver-card">
+                <div class="card-header">
+                    <div class="card-icon silver-icon">🥈</div>
+                    <h2 class="card-title">Silver Price</h2>
+                </div>
+                <div class="price" id="silverPrice">₹150</div>
+                <p>Per gram in Indian Rupees (INR)</p>
+                <div class="price-location" id="silverLocation">India • Mumbai</div>
+                <div class="last-updated" id="silverUpdated">Last updated: Just now</div>
+            </div>
+
+            <!-- Gold/Silver Ratio Card -->
+            <div class="card ratio-card">
+                <div class="card-header">
+                    <div class="card-icon ratio-icon">⚖️</div>
+                    <h2 class="card-title">Gold/Silver Ratio</h2>
+                </div>
+                <div class="ratio-value" id="ratioValue">77.6</div>
+                <p>How many grams of silver = 1 gram of gold</p>
+                <div class="explanation">
+                    <strong>Historical Context:</strong> 
+                    <span id="ratioContext">Current ratio is within normal range (60-80).</span>
+                </div>
+            </div>
+
+            <!-- AI Recommendation Card -->
+            <div class="card ai-card">
+                <div class="card-header">
+                    <div class="card-icon ai-icon">🤖</div>
+                    <h2 class="card-title">AI Advice</h2>
+                </div>
+                <div class="recommendation" id="recommendation">HOLD</div>
+                <p id="recommendationAsset">Gold & Silver ETFs</p>
+                <div class="allocation" id="allocationDisplay">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Recommendation Analysis Card -->
+            <div class="card analysis-card">
+                <div class="card-header">
+                    <div class="card-icon ai-icon">📊</div>
+                    <h2 class="card-title">Investment Analysis</h2>
+                </div>
+                <div class="ai-details" id="aiDetails">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="data-source">
+            Data as of <span id="footerDate">October 1, 2025</span> • Prices sourced from 
+            <a href="https://ibja.co" target="_blank" rel="noopener noreferrer">Indian Bullion & Jewellers Association (IBJA)</a> 
+            and <a href="https://www.mcxindia.com" target="_blank" rel="noopener noreferrer">MCX India</a>
+        </div>
+        <div class="disclaimer">
+            Disclaimer: This dashboard provides simulated data for demonstration purposes only. 
+            Actual market prices may vary. Investment decisions should be made after consulting 
+            with a certified financial advisor. Past performance is not indicative of future results.
+        </div>
+    </footer>
+
+    <script>
+        // Simulated real-time data
+        const goldPrice = 11640; // INR per gram
+        const silverPrice = 150; // INR per gram
+        const ratio = (goldPrice / silverPrice).toFixed(1);
+        
+        // Get current date in India
+        const now = new Date();
+        const dateOptions = { 
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+        const timeOptions = {
+            timeZone: 'Asia/Kolkata',
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true
+        };
+        const indiaDate = now.toLocaleDateString('en-IN', dateOptions);
+        const indiaTime = now.toLocaleTimeString('en-IN', timeOptions);
+        const fullTimestamp = `Prices for India • Mumbai • Last updated: ${indiaDate} at ${indiaTime} IST`;
+        
+        // DOM elements
+        const goldPriceEl = document.getElementById('goldPrice');
+        const silverPriceEl = document.getElementById('silverPrice');
+        const ratioValueEl = document.getElementById('ratioValue');
+        const ratioContextEl = document.getElementById('ratioContext');
+        const recommendationEl = document.getElementById('recommendation');
+        const recommendationAssetEl = document.getElementById('recommendationAsset');
+        const allocationDisplayEl = document.getElementById('allocationDisplay');
+        const aiDetailsEl = document.getElementById('aiDetails');
+        const timestampBannerEl = document.getElementById('timestampBanner');
+        const footerDateEl = document.getElementById('footerDate');
+        
+        // Set footer date
+        footerDateEl.textContent = indiaDate;
+        
+        // Format prices with commas
+        const formatPrice = (price) => {
+            return '₹' + price.toLocaleString('en-IN');
+        };
+        
+        // Update displayed prices
+        goldPriceEl.textContent = formatPrice(goldPrice);
+        silverPriceEl.textContent = formatPrice(silverPrice);
+        ratioValueEl.textContent = ratio;
+        
+        // Update timestamp banner
+        timestampBannerEl.textContent = fullTimestamp;
+        
+        // Analyze ratio and generate detailed recommendation
+        let recommendation = 'HOLD';
+        let recommendationAsset = 'Gold & Silver ETFs';
+        let ratioContext = '';
+        let aiDetails = '';
+        let goldAllocation = 50;
+        let silverAllocation = 50;
+
+        if (ratio < 60) {
+            ratioContext = 'Current ratio is LOW (<60). Historically indicates silver is overvalued or gold undervalued.';
+            recommendation = 'BUY';
+            recommendationAsset = 'Gold ETFs';
+            goldAllocation = 65;
+            silverAllocation = 35;
+            aiDetails = `
+                <h4>Action: BUY Gold ETFs</h4>
+                <p><strong>Do not buy both in equal proportion.</strong> Increase Gold ETF allocation while reducing Silver ETF exposure.</p>
+                <ul>
+                    <li>Gold is historically undervalued relative to silver</li>
+                    <li>Strong potential for gold price appreciation</li>
+                    <li>Recommended allocation: ${goldAllocation}% Gold ETFs, ${silverAllocation}% Silver ETFs</li>
+                </ul>
+                <h4>Market Outlook</h4>
+                <p>Favorable for precious metals due to economic uncertainty and inflation hedge demand.</p>
+            `;
+        } else if (ratio > 85) {
+            ratioContext = 'Current ratio is HIGH (>85). Historically indicates gold is overvalued or silver undervalued.';
+            recommendation = 'BUY';
+            recommendationAsset = 'Silver ETFs';
+            goldAllocation = 35;
+            silverAllocation = 65;
+            aiDetails = `
+                <h4>Action: BUY Silver ETFs</h4>
+                <p><strong>Do not buy both in equal proportion.</strong> Increase Silver ETF allocation while reducing Gold ETF exposure.</p>
+                <ul>
+                    <li>Silver is historically undervalued relative to gold</li>
+                    <li>Industrial demand may boost silver prices</li>
+                    <li>Recommended allocation: ${goldAllocation}% Gold ETFs, ${silverAllocation}% Silver ETFs</li>
+                </ul>
+                <h4>Market Outlook</h4>
+                <p>Strong upside potential for silver with improving industrial activity and green energy trends.</p>
+            `;
+        } else {
+            ratioContext = 'Current ratio is within normal range (60-80).';
+            recommendation = 'HOLD';
+            recommendationAsset = 'Gold & Silver ETFs';
+            goldAllocation = 50;
+            silverAllocation = 50;
+            aiDetails = `
+                <h4>Action: HOLD Current Positions</h4>
+                <p><strong>Continue buying both Gold and Silver ETFs in equal 50/50 proportion</strong> if you are making new investments, as the current ratio indicates balanced valuation.</p>
+                <ul>
+                    <li>Gold/Silver ratio is balanced</li>
+                    <li>No strong signal for over/undervaluation</li>
+                    <li>Maintain current ${goldAllocation}/${silverAllocation} allocation between Gold & Silver ETFs</li>
+                </ul>
+                <h4>Market Outlook</h4>
+                <p>Stable conditions with moderate volatility. Rebalance if ratio moves beyond 60-80 range.</p>
+            `;
+        }
+        
+        // Update UI
+        ratioContextEl.textContent = ratioContext;
+        recommendationEl.textContent = recommendation;
+        recommendationAssetEl.textContent = recommendationAsset;
+        recommendationEl.className = 'recommendation ' + recommendation.toLowerCase();
+        aiDetailsEl.innerHTML = aiDetails;
+        
+        // Update allocation display
+        allocationDisplayEl.innerHTML = `
+            <div class="allocation-item">
+                <div class="allocation-label">Gold ETF</div>
+                <div class="allocation-value">${goldAllocation}%</div>
+            </div>
+            <div class="allocation-item">
+                <div class="allocation-label">Silver ETF</div>
+                <div class="allocation-value">${silverAllocation}%</div>
+            </div>
+        `;
+    </script>
+</body>
+</html>
